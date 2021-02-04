@@ -2,10 +2,12 @@
   "name": "peertube-plugin-chapters",
   "description": "PeerTube chapter plugin",
   "license": "(MIT OR Apache-2.0)",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "author": "Miles DeWitt",
   "homepage": "https://milesdewitt.com/peertube-chapters",
+  "repository": "https://github.com/samlich/peertube-plugin-chapters",
   "bugs": "https://github.com/samlich/peertube-plugin-chapters",
+  "engine.peertube": ">=2.4.0",
   "clientScripts": [
     {
       "script": "dist/video-watch-client-plugin.js",
