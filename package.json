@@ -2,7 +2,7 @@
   "name": "peertube-plugin-chapters",
   "description": "PeerTube chapter plugin",
   "license": "(MIT OR Apache-2.0)",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Miles DeWitt",
   "homepage": "https://milesdewitt.com/peertube-chapters",
   "repository": "https://github.com/samlich/peertube-plugin-chapters",

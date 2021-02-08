@@ -1,7 +1,7 @@
 // import marked from 'marked' - doesn't work in main.js
 const marked = require('marked')
 
-const version = '0.1.3'
+const version = '0.1.4'
 const tableOfContentsField = 'table-of-contents'
 
 /*
