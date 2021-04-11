@@ -45,7 +45,8 @@
     "test": "standard"
   },
   "translations": {
-    "de-DE": "./languages/de.json"
+    "de-DE": "./languages/de.json",
+    "pl-PL": "./languages/pl.json"
   },
   "css": [],
   "staticDirs": {}
