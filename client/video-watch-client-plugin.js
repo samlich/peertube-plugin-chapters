@@ -13,7 +13,11 @@ function register ({ registerHook, peertubeHelpers }) {
     target: 'action:embed.player.loaded',
     handler: ({ player, video, videojs }) => {
       // `peertubeHelpers` is not available for embed, make best attemp at getting base route
-      var baseRoute = video.originInstanceUrl + '/plugins/chapters/' + version + '/router'
+      // var baseRoute = video.originInstanceUrl + '/plugins/chapters/' + version + '/router'
+      var baseRoute = video.channel.url
+      baseRoute = baseRoute.slice(0, baseRoute.lastIndexOf('/'))
+      baseRoute = baseRoute.slice(0, baseRoute.lastIndexOf('/'))
+      baseRoute += '/plugins/chapters/' + version + '/router'
       setup(player, video, videojs, baseRoute)
     }
   })

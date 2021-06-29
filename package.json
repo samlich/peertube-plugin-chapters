@@ -2,7 +2,7 @@
   "name": "peertube-plugin-chapters",
   "description": "PeerTube chapter plugin",
   "license": "(MIT OR Apache-2.0)",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Miles DeWitt",
   "homepage": "https://milesdewitt.com/peertube-chapters",
   "repository": "https://github.com/samlich/peertube-plugin-chapters",
@@ -26,7 +26,7 @@
     }
   ],
   "dependencies": {
-    "marked": "^1.2"
+    "marked": "^2.1"
   },
   "devDependencies": {
     "@purtuga/esm-webpack-plugin": "^1.0",
@@ -41,7 +41,7 @@
   "library": "./main.js",
   "scripts": {
     "prepare": "npm run build",
-		"build": "webpack",
+    "build": "webpack",
     "test": "standard"
   },
   "translations": {
