@@ -4,6 +4,7 @@ function register ({ registerHook, peertubeHelpers }) {
   registerHook({
     target: 'action:video-watch.player.loaded',
     handler: ({ player, video, videojs }) => {
+      // `getBaseRouterRoute` doesn't seem to actually exist? So, use `getBaseStaticRoute`
       const baseStatic = peertubeHelpers.getBaseStaticRoute()
       setup(player, video, videojs, baseStatic.slice(0, baseStatic.lastIndexOf('/') + 1) + 'router')
     }
@@ -11,10 +12,9 @@ function register ({ registerHook, peertubeHelpers }) {
   registerHook({
     target: 'action:embed.player.loaded',
     handler: ({ player, video, videojs }) => {
-      // `peertubeHelpers` is not available for embed
-      // todo
-      // var baseRoute = video.url
-      // setup(player, video, videojs, baseRoute)
+      // `peertubeHelpers` is not available for embed, make best attemp at getting base route
+      var baseRoute = video.originInstanceUrl + '/plugins/chapters/' + version + '/router'
+      setup(player, video, videojs, baseRoute)
     }
   })
 
@@ -64,4 +64,4 @@ function register ({ registerHook, peertubeHelpers }) {
   }
 }
 
-export { register}
+export { register }
