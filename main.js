@@ -28,9 +28,9 @@ async function register ({registerHook, registerSetting, settingsManager, storag
           const webVtt = toWebVtt(parsed)
           storageManager.storeData(tableOfContentsField + '_vtt' + '_v-' + video.id, webVtt)
         }
-      }else {
-        webVttstorageManager.storeData(tableOfContentsField + '_parsed' + '_v-' + video.id, null)
-        webVttstorageManager.storeData(tableOfContentsField + '_vtt' + '_v-' + video.id, null)
+      } else {
+        storageManager.storeData(tableOfContentsField + '_parsed' + '_v-' + video.id, null)
+        storageManager.storeData(tableOfContentsField + '_vtt' + '_v-' + video.id, null)
       }
     }
   })
