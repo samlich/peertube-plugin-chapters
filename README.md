@@ -51,4 +51,4 @@ Chapters can be accessed by other plugins using the text track added to the vide
 
 ## Contributing
 
-Code is run through `npx standard-format <file>`. Some of the changes it makes are wrong, but at least it's consistent.
+Code is run through `npx standard --fix`. Some of the changes it makes are wrong, but at least it's consistent.
