@@ -44,7 +44,7 @@ function parseTableOfContents (unparsed) {
     var items = list.items
     for (const item of items) {
       if (item.type != 'list_item') {
-        return { errorString: 'Non-list item: ' + item.text }
+        return { error: { kind: 'non_list_item', item: item.text } }
       }
       if (0 < item.tokens.length &&
         item.tokens[0].type == 'text' &&
@@ -52,15 +52,15 @@ function parseTableOfContents (unparsed) {
         item.tokens[0].tokens[0].type == 'link') {
         var link = item.tokens[0].tokens[0]
         if (!link.href.startsWith('#')) {
-          return { errorString: 'Timestamp does not start with "#"' }
+          return { error: { kind: 'timestamp_not_fragment' } }
         }else {
           const timestampText = link.href.slice(1) // == #1m1s
           var timestamp = parseTimestamp(timestampText)
-          if (timestamp.errorString != null) {
-            return { errorString: 'Failed to parse timestamp for "' + item.tokens[0].text + '": ' + timestamp.errorString }
+          if (timestamp.error != null) {
+            return { error: { kind: 'bad_timestamp', item: item.tokens[0].text, timestampError: timestamp.error } }
           }
-          if (timestamp.length != timestampText.trim().length) {
-            return { errorString: 'Failed to parse timestamp for "' + item.tokens[0].text + '", only "' + timestampText.slice(0, timestamp.length) + '" of "' + timestampText + '" is valid.' }
+          if (timestamp.length !== timestampText.trim().length) {
+            return { error: { kind: 'bad_timestamp_partial', item: item.tokens[0].text, timestampValid: timestampText.slice(0, timestamp.length), timestamp: timestampText } }
           }
           var chapter_text = link.text
           // keep markdown
@@ -68,11 +68,12 @@ function parseTableOfContents (unparsed) {
 
           const result = pushChapter(ret, chapter_text, timestamp)
           if (result != true) {
-            return { errorString: result }
+            // never happens at the moment, so no handling for translation
+            return { error: { kind: 'push_chapter', errorString: result } }
           }
         }
       }else {
-        return { errorString: 'Encounterred non-link item, "' + item.text + '"' }
+        return { error: { kind: 'non_link', item: item.text } }
       }
     }
   }else {
@@ -83,8 +84,8 @@ function parseTableOfContents (unparsed) {
         continue
       }
       const timestamp = parseTimestamp(line)
-      if (timestamp.errorString != null) {
-        return { errorString: 'Failed to parse timestamp at start of "' + line + '": ' + timestamp.errorString }
+      if (timestamp.error != null) {
+        return { error: { kind: 'bad_timestamp_starting_line', lineText: line, timestampError: timestamp.error } }
       }
       var text = line.slice(timestamp.length).trim()
       var limit = 0
@@ -96,7 +97,8 @@ function parseTableOfContents (unparsed) {
       }
       const result = pushChapter(ret, text, timestamp)
       if (result != true) {
-        return { errorString: result }
+        // never happens at the moment, so no handling for translation
+        return { error: { kind: 'push_chapter', errorString: result } }
       }
     }
   }
@@ -116,6 +118,68 @@ function parseTableOfContents (unparsed) {
   }
 
   return ret
+}
+
+async function fillParseTableOfContentsErrorString (peertubeHelpers, error) {
+  try {
+    switch (error.kind) {
+      case 'non_list_item':
+        error.errorString = await peertubeHelpers.translate('Non-list item') + ': ' + error.item
+        break
+      case 'timestamp_not_fragment':
+        error.errorString = await peertubeHelpers.translate('Timestamp does not start with "#"')
+        break
+      case 'bad_timestamp':
+        await fillParseTimestampErrorString(peertubeHelpers, error.timestampError)
+        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + '" ' + error.item + '": ' + error.timestampError.errorString
+        break
+      case 'bad_timestamp_partial':
+        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + ' "' + error.item + '"' + await peertubeHelpers.translate(', only ') + '"' + error.timestamp_valid + '"' + await peertubeHelpers.translate(' of ') + '"' + error.timestamp + '"' + await peertubeHelpers.translate(' is valid.')
+        break
+      case 'bad_timestamp_starting_line':
+        await fillParseTimestampErrorString(peertubeHelpers, error.timestampError)
+      error.errorString = await peertubeHelpers.translate('Failed to parse timestamp at start of') + ' "' + error.lineText + '": ' + error.timestampError.errorString
+        break
+      case 'non_link':
+        error.errorString = await peertubeHelpers.translate('Encountered non-link item') + ', "' + error.item + '"'
+        break
+      default:
+        if (error.errorString === null) {
+          error.errorString = await peertubeHelpers.translate('Unknown error.')
+        }
+        break
+    }
+  } catch (e) {
+    if (error.errorString === null) {
+      error.errorString = error.kind + ' (unable to access translation service)'
+    }
+    console.error('chapters: Failed getting translation for table of contents parsing error message:')
+    console.error(e)
+  }
+}
+
+async function fillParseTimestampErrorString (peertubeHelpers, error) {
+  try {
+    switch (error.kind) {
+      case 'frame_number_and_fractional_seconds':
+        error.errorString = await peertubeHelpers.translate('Frame number not allowed with fractional seconds')
+        break
+      case 'unknown_format':
+        error.errorString = await peertubeHelpers.translate('Unknown timestamp format')
+        break
+      default:
+        if (error.errorString === null) {
+          error.errorString = await peertubeHelpers.translate('Unknown error.')
+        }
+        break
+    }
+  } catch (e) {
+    if (error.errorString === null) {
+      error.errorString = error.kind + ' (unable to access translation service)'
+    }
+    console.error('chapters: Failed getting translation for timestamp parsing error message:')
+    console.error(e)
+  }
 }
 
 function toWebVtt (obj, json) {
@@ -222,7 +286,7 @@ function parseTimestamp (unparsed) {
     var frame = 0
     if (sg[4]) {
       if (secondsDigit != Math.floor(secondsDigit)) {
-        return { errorString: 'Frame number not allowed with fractional seconds' }
+        return { error: { kind: 'frame_number_and_fractional_seconds' } }
       }
       frame = parseInt(sg[4])
     }
@@ -251,7 +315,7 @@ function parseTimestamp (unparsed) {
     var frame = 0
     if (unit[4]) {
       if (secondsSpecified != Math.floor(secondsSpecified)) {
-        return { errorString: 'Frame number not allowed with fractional seconds' }
+        return { error: { kind: 'frame_number_and_fractional_seconds' } }
       }
       frame = parseInt(unit[4])
     }
@@ -263,11 +327,12 @@ function parseTimestamp (unparsed) {
     }
   }
 
-  return { errorString: 'Unrecognizable timestamp format' }
+  return { error: { kind: 'unknown_format' } }
 }
 
 module.exports = {
   version,
   tableOfContentsField,
   parseTableOfContents,
+  fillParseTableOfContentsErrorString,
 toWebVtt}

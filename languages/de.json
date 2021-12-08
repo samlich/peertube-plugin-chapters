@@ -1,3 +1,15 @@
 {
-	"Table of contents": "Inhaltsverzeichnis"
+	"Table of contents": "Inhaltsverzeichnis",
+  "You can use a Markdown format, e.g. \"20. [Tim the Enchanter](#1h3m44.7s)\", or a simple text format such as \"1:03:44 Tim the Enchanter\".<br/><br/>A chapter that doesn't provide unique information and may want to be skipped can be marked with a special category including \"Sponsor\", \"Self-promotion\", \"Interaction reminder\", \"Intro\", \"Intermission\", \"Outro\", \"Credits\", or \"Non-music\". These tags are recognized when they are placed in parenthesis at the start of a title, e.g. \"13. [(Sponsor) About Bob's Beans](#1m3s)\".<br/><br/>In the simple text case, separators will be removed, such as \"1:03:44 - Tim the Enchanter\" being equivalent to the above. The Markdown format allows specifying subchapters with a four space indent, the simple text format recognizes indents before the timestamp.<br/><br/>Timestamps can be colon-separated, e.g. 0:00.00, where the smallest unit is a second, or unit-separated such as 0h0m0.0s.": "Sie können ein Markdown-Format verwenden, z.B. \"20. [Tim der Zauberer](#1h3m44.7s)\", oder ein einfaches Textformat wie \"1:03:44 Tim der Zauberer\".<br/><br/>Ein Kapitel, das nicht tut Geben Sie einzigartige Informationen an und möchte möglicherweise übersprungen werden, kann mit einer speziellen Kategorie gekennzeichnet sein, einschließlich \"Sponsor\", \"Self-Promotion\", \"Interaction reminder\", \"Intro\", \"Intermission\", \"Outro\", \"Credits\", oder \"Non-music\". Diese Tags werden erkannt, wenn sie in Klammern in der Einstellung Beginn eines Titels, z.B. \"13. [(Sponsor) Über Bobs Bohnen](#1m3s)\".<br/><br/>Im einfachen Textfall werden Trennzeichen entfernt, wie \"1:03:44 - Tim der Zauberer\" gleichwertig mit dem obigen. Das Markdown-Format ermöglicht das Angeben von Subkaptern mit einem Vier-Leerzeichen-Einzug, das einfache Textformat erkennt Einzüge vor dem Zeitstempel.<br/><br/>Zeitstempel können dolon getrennt sein, z.B. 0:00.00, wobei die kleinste Einheit ein zweiter oder einheit getrennt wie 0h0m0.0s ist.",
+  "Non-list item": "Nicht-List-Teil",
+  "Timestamp does not start with \"#\"": "Zeitstempel beginnt nicht mit \"#\"",
+  "Failed to parse timestamp for": "Fehler beim Parse der Zeitstempel für",
+  ", only ": ", nur ",
+  " of ": " von ",
+  " is valid.": " ist gültig.",
+  "Encountered non-link item": "Nicht-Link-Teil vorgefunden",
+  "Failed to parse timestamp at start of": "Fehler beim Parse der Zeitstempel beim Anfang",
+  "Frame number not allowed with fractional seconds": "Bildnummer nicht mit fraktionierter Sekunden erlaubt ",
+  "Unknown timestamp format": "Unbekanntes Zeitstempel-Format",
+  "Unknown error": "Unbekannter Fehler"
 }

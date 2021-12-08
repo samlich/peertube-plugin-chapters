@@ -1,4 +1,4 @@
-import { version, tableOfContentsField, parseTableOfContents, toWebVtt } from './common.js'
+import { version, tableOfContentsField, parseTableOfContents, fillParseTableOfContentsErrorString, toWebVtt } from './common.js'
 
 async function register ({ registerVideoField, peertubeHelpers }) {
   // Add table of contents option
@@ -18,15 +18,16 @@ async function register ({ registerVideoField, peertubeHelpers }) {
     const videoFormOptions = { type}
     registerVideoField(commonOptions, videoFormOptions)
   }
-  finishAddTableOfContentsField()
+  await finishAddTableOfContentsField(peertubeHelpers)
 }
 
-function finishAddTableOfContentsField () {
+async function finishAddTableOfContentsField (peertubeHelpers) {
   var element = document.getElementById(tableOfContentsField)
   // The element is not added until the user switches to the "Plugin settings" tab
   if (element == null) {
     setTimeout(() => {
-      finishAddTableOfContentsField()}, 3000)
+      finishAddTableOfContentsField(peertubeHelpers)
+    }, 3000)
     return
   }
 
@@ -36,9 +37,9 @@ function finishAddTableOfContentsField () {
 
   var valid = true
 
-  function update () {
+  async function update () {
     const parsed = parseTableOfContents(element.value)
-    if (parsed.errorString == null) {
+    if (parsed.error == null) {
       if (!valid) {
         valid = true
 
@@ -76,13 +77,17 @@ function finishAddTableOfContentsField () {
         errorEl.classList.add('form-error')
         element.parentNode.appendChild(errorEl)
       }
-      errorEl.innerText = parsed.errorString
+
+      await fillParseTableOfContentsErrorString(peertubeHelpers, parsed.error)
+      errorEl.innerText = parsed.error.errorString
     }
   }
 
-  element.addEventListener('input', (event) => {
-    update()})
-  update()
+  element.addEventListener('input', async (event) => {
+    await update()
+  })
+
+  await update()
 }
 
 export { register}
