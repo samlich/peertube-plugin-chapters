@@ -1,7 +1,7 @@
 const common = require('./client/common.js')
-const { version, tableOfContentsField, parseTableOfContents, toWebVtt } = common
+const { tableOfContentsField, parseTableOfContents, toWebVtt } = common
 
-async function register ({registerHook, registerSetting, settingsManager, storageManager, videoCategoryManager, videoLicenceManager, videoLanguageManager, getRouter}) {
+async function register ({ registerHook, registerSetting, settingsManager, storageManager, videoCategoryManager, videoLicenceManager, videoLanguageManager, getRouter }) {
   registerHook({
     target: 'action:api.video.updated',
     handler: ({ video, body }) => {
@@ -22,9 +22,9 @@ async function register ({registerHook, registerSetting, settingsManager, storag
       const parsed = parseTableOfContents(tocText)
       if (parsed.errorString == null) {
         storageManager.storeData(tableOfContentsField + '_parsed' + '_v-' + video.id, parsed)
-        if (parsed.chapters.length == 0) {
+        if (parsed.chapters.length === 0) {
           storageManager.storeData(tableOfContentsField + '_vtt' + '_v-' + video.id, null)
-        }else {
+        } else {
           const webVtt = toWebVtt(parsed)
           storageManager.storeData(tableOfContentsField + '_vtt' + '_v-' + video.id, webVtt)
         }
@@ -58,7 +58,7 @@ async function register ({registerHook, registerSetting, settingsManager, storag
 
     if (webVtt == null) {
       res.status(404).send('404 Not Found')
-    }else {
+    } else {
       res.append('content-type', 'text/vtt')
       res.send(webVtt)
     }
@@ -70,4 +70,5 @@ async function unregister () {
 
 module.exports = {
   register,
-unregister}
+  unregister
+}

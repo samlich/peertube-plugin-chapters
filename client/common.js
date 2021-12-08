@@ -34,26 +34,26 @@ function parseTableOfContents (unparsed) {
     end: null
   }
 
-  if (unparsed.trim().length == 0) {
+  if (unparsed.trim().length === 0) {
     return ret
   }
 
   const markdownTokens = marked.lexer(unparsed)
-  if (markdownTokens && 1 <= markdownTokens.length && markdownTokens[0].type == 'list') {
+  if (markdownTokens && markdownTokens.length >= 1 && markdownTokens[0].type === 'list') {
     var list = markdownTokens[0]
     var items = list.items
     for (const item of items) {
-      if (item.type != 'list_item') {
+      if (item.type !== 'list_item') {
         return { error: { kind: 'non_list_item', item: item.text } }
       }
-      if (0 < item.tokens.length &&
-        item.tokens[0].type == 'text' &&
-        0 < item.tokens[0].tokens.length &&
-        item.tokens[0].tokens[0].type == 'link') {
+      if (item.tokens.length > 0 &&
+        item.tokens[0].type === 'text' &&
+        item.tokens[0].tokens.length > 0 &&
+        item.tokens[0].tokens[0].type === 'link') {
         var link = item.tokens[0].tokens[0]
         if (!link.href.startsWith('#')) {
           return { error: { kind: 'timestamp_not_fragment' } }
-        }else {
+        } else {
           const timestampText = link.href.slice(1) // == #1m1s
           var timestamp = parseTimestamp(timestampText)
           if (timestamp.error != null) {
@@ -62,25 +62,24 @@ function parseTableOfContents (unparsed) {
           if (timestamp.length !== timestampText.trim().length) {
             return { error: { kind: 'bad_timestamp_partial', item: item.tokens[0].text, timestampValid: timestampText.slice(0, timestamp.length), timestamp: timestampText } }
           }
-          var chapter_text = link.text
-          // keep markdown
-          var chapter_markdown = link.tokens
+          var chapterText = link.text
+          // var chapter_markdown = link.tokens
 
-          const result = pushChapter(ret, chapter_text, timestamp)
-          if (result != true) {
+          const result = pushChapter(ret, chapterText, timestamp)
+          if (result !== true) {
             // never happens at the moment, so no handling for translation
             return { error: { kind: 'push_chapter', errorString: result } }
           }
         }
-      }else {
+      } else {
         return { error: { kind: 'non_link', item: item.text } }
       }
     }
-  }else {
+  } else {
     const lines = unparsed.split('\n')
     for (const idx in lines) {
       const line = lines[idx]
-      if (line.trim().length == 0) {
+      if (line.trim().length === 0) {
         continue
       }
       const timestamp = parseTimestamp(line)
@@ -89,29 +88,29 @@ function parseTableOfContents (unparsed) {
       }
       var text = line.slice(timestamp.length).trim()
       var limit = 0
-      while(limit < 10000) {
+      while (limit < 10000) {
         limit += 1
         if (text.startsWith('-') || text.startsWith(':')) {
           text = text.slice(1).trim()
         }
       }
       const result = pushChapter(ret, text, timestamp)
-      if (result != true) {
+      if (result !== true) {
         // never happens at the moment, so no handling for translation
         return { error: { kind: 'push_chapter', errorString: result } }
       }
     }
   }
 
-  ret.chapters.sort(function (a, b) { return a.start - b.start; })
+  ret.chapters.sort(function (a, b) { return a.start - b.start })
   for (var i = 0; i < ret.chapters.length; i++) {
     var chapter = ret.chapters[i]
     if (chapter.end == null) {
       if (i + 1 < ret.chapters.length) {
         chapter.end = ret.chapters[i + 1].start
-      }else if (ret.end != null) {
+      } else if (ret.end != null) {
         chapter.end = ret.end
-      }else {
+      } else {
         // Giveup, use end of video, if known
       }
     }
@@ -134,11 +133,11 @@ async function fillParseTableOfContentsErrorString (peertubeHelpers, error) {
         error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + '" ' + error.item + '": ' + error.timestampError.errorString
         break
       case 'bad_timestamp_partial':
-        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + ' "' + error.item + '"' + await peertubeHelpers.translate(', only ') + '"' + error.timestamp_valid + '"' + await peertubeHelpers.translate(' of ') + '"' + error.timestamp + '"' + await peertubeHelpers.translate(' is valid.')
+        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + ' "' + error.item + '"' + await peertubeHelpers.translate(', only ') + '"' + error.timestampValid + '"' + await peertubeHelpers.translate(' of ') + '"' + error.timestamp + '"' + await peertubeHelpers.translate(' is valid.')
         break
       case 'bad_timestamp_starting_line':
         await fillParseTimestampErrorString(peertubeHelpers, error.timestampError)
-      error.errorString = await peertubeHelpers.translate('Failed to parse timestamp at start of') + ' "' + error.lineText + '": ' + error.timestampError.errorString
+        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp at start of') + ' "' + error.lineText + '": ' + error.timestampError.errorString
         break
       case 'non_link':
         error.errorString = await peertubeHelpers.translate('Encountered non-link item') + ', "' + error.item + '"'
@@ -168,13 +167,13 @@ async function fillParseTimestampErrorString (peertubeHelpers, error) {
         error.errorString = await peertubeHelpers.translate('Unknown timestamp format')
         break
       default:
-        if (error.errorString === null) {
+        if (error.errorString == null) {
           error.errorString = await peertubeHelpers.translate('Unknown error.')
         }
         break
     }
   } catch (e) {
-    if (error.errorString === null) {
+    if (error.errorString == null) {
       error.errorString = error.kind + ' (unable to access translation service)'
     }
     console.error('chapters: Failed getting translation for timestamp parsing error message:')
@@ -200,11 +199,11 @@ function toWebVtt (obj, json) {
   }
 
   var ret = 'WEBVTT\n\n'
-  if (obj.description != null && obj.description.length != 0) {
+  if (obj.description !== null && obj.description.length !== 0) {
     ret += 'NOTE\n' + obj.description + '\n\n'
   }
 
-  if (obj.chapters.length == 0) {
+  if (obj.chapters.length === 0) {
     return ret
   }
 
@@ -213,7 +212,7 @@ function toWebVtt (obj, json) {
     var end = null
     if (chapter.end != null) {
       end = chapter.end
-    }else {
+    } else {
       // Giveup and use placeholder
       end = chapter.start + 60
     }
@@ -228,7 +227,7 @@ function toWebVtt (obj, json) {
     if (json) {
       const jsonObj = { title: chapter.name }
       ret += JSON.stringify(jsonObj)
-    }else {
+    } else {
       ret += chapter.name
     }
     ret += '\n\n'
@@ -242,21 +241,21 @@ function pushChapter (obj, text, start) {
   var tags = {}
   if (tag) {
     tag = tag[1].toLowerCase()
-    if (tag == 'sponsor') {
+    if (tag === 'sponsor') {
       tags.sponsor = true
-    }else if (tag == 'self-promotion' || tag == 'self promotion') {
+    } else if (tag === 'self-promotion' || tag === 'self promotion') {
       tags.selfPromotion = true
-    }else if (tag == 'interaction reminder') {
+    } else if (tag === 'interaction reminder') {
       tags.interactionReminder = true
-    }else if (tag == 'intro' || tag == 'introduction') {
+    } else if (tag === 'intro' || tag === 'introduction') {
       tags.intro = true
-    }else if (tag == 'intermission') {
+    } else if (tag === 'intermission') {
       tags.intermission = true
-    }else if (tag == 'outro') {
+    } else if (tag === 'outro') {
       tags.outro = true
-    }else if (tag == 'credits') {
+    } else if (tag === 'credits') {
       tags.credits = true
-    }else if (tag == 'non-music' || tag == 'non music' || tag == 'nonmusic') {
+    } else if (tag === 'non-music' || tag === 'non music' || tag === 'nonmusic') {
       tags.nonMusic = true
     }
   }
@@ -285,7 +284,7 @@ function parseTimestamp (unparsed) {
 
     var frame = 0
     if (sg[4]) {
-      if (secondsDigit != Math.floor(secondsDigit)) {
+      if (secondsDigit !== Math.floor(secondsDigit)) {
         return { error: { kind: 'frame_number_and_fractional_seconds' } }
       }
       frame = parseInt(sg[4])
@@ -298,7 +297,7 @@ function parseTimestamp (unparsed) {
     }
   }
 
-  if (unit && unit[0].length != 0) {
+  if (unit && unit[0].length !== 0) {
     var s = 0
     if (unit[1]) {
       s += 3600 * unit[1]
@@ -314,7 +313,7 @@ function parseTimestamp (unparsed) {
 
     var frame = 0
     if (unit[4]) {
-      if (secondsSpecified != Math.floor(secondsSpecified)) {
+      if (secondsSpecified !== Math.floor(secondsSpecified)) {
         return { error: { kind: 'frame_number_and_fractional_seconds' } }
       }
       frame = parseInt(unit[4])
@@ -335,4 +334,5 @@ module.exports = {
   tableOfContentsField,
   parseTableOfContents,
   fillParseTableOfContentsErrorString,
-toWebVtt}
+  toWebVtt
+}

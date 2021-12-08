@@ -1,4 +1,4 @@
-import { version, tableOfContentsField, parseTableOfContents } from './common.js'
+import { version, tableOfContentsField } from './common.js'
 
 function register ({ registerHook, peertubeHelpers }) {
   registerHook({
@@ -27,7 +27,7 @@ function register ({ registerHook, peertubeHelpers }) {
       console.log('chapters: No table of contents provided for this video')
       return
     }
-    const tocText = video.pluginData[tableOfContentsField]
+    // const tocText = video.pluginData[tableOfContentsField]
 
     const vttUrl = baseRoute + '/videos/' + video.id
     var track = player.addRemoteTextTrack({
@@ -37,12 +37,12 @@ function register ({ registerHook, peertubeHelpers }) {
     })
     // no `onload` event it seems
     function waitTrackReady () {
-      if (track.readyState == 0 || track.readyState == 1) {
+      if (track.readyState === 0 || track.readyState === 1) {
         // not ready
         window.setTimeout(waitTrackReady, 50)
-      }else if (track.readyState == 3 || track.track.cues.length == 0) {
+      } else if (track.readyState === 3 || track.track.cues.length === 0) {
         console.log('chapters: Failed to load video text track from "' + vttUrl + '"')
-      }else if (track.readyState == 2) {
+      } else if (track.readyState === 2) {
         if (player.controlBar.getChild('ChaptersButton') == null) {
           const ChaptersButton = videojs.getComponent('ChaptersButton')
           const chaptersButton = new ChaptersButton(player, { name: 'ChaptersButton' })
@@ -52,7 +52,7 @@ function register ({ registerHook, peertubeHelpers }) {
             player.controlBar.el().insertBefore(chaptersButton.el(), nextEl.el())
           }
           var menu = chaptersButton.el().getElementsByClassName('vjs-menu-content')
-          if (menu != null && 0 < menu.length) {
+          if (menu != null && menu.length > 0) {
             menu = menu[0]
             // Some part of the theme sets
             // .video-js.vjs-peertube-skin .vjs-control-bar .vjs-menu-button-popup .vjs-menu .vjs-menu-content
@@ -60,7 +60,7 @@ function register ({ registerHook, peertubeHelpers }) {
             menu.style.width = 'auto'
           }
         }
-      }else {
+      } else {
         console.log('chapters: Unexpected HTMLTrackElement readyState of ' + track.readyState + ' while loading video text track from "' + vttUrl + '"')
       }
     }

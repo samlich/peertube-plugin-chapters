@@ -1,4 +1,4 @@
-import { version, tableOfContentsField, parseTableOfContents, fillParseTableOfContentsErrorString, toWebVtt } from './common.js'
+import { tableOfContentsField, parseTableOfContents, fillParseTableOfContentsErrorString, toWebVtt } from './common.js'
 
 async function register ({ registerVideoField, peertubeHelpers }) {
   // Add table of contents option
@@ -15,7 +15,7 @@ async function register ({ registerVideoField, peertubeHelpers }) {
     default: ''
   }
   for (const type of ['upload', 'import-url', 'import-torrent', 'update']) {
-    const videoFormOptions = { type}
+    const videoFormOptions = { type }
     registerVideoField(commonOptions, videoFormOptions)
   }
   await finishAddTableOfContentsField(peertubeHelpers)
@@ -52,14 +52,14 @@ async function finishAddTableOfContentsField (peertubeHelpers) {
         }
       }
 
-      if (parsed.chapters.length == 0) {
+      if (parsed.chapters.length === 0) {
         element.title = ''
       // previewEl.innerText = ''
-      }else {
+      } else {
         element.title = toWebVtt(parsed)
       // previewEl.innerText = toWebVtt(parsed)
       }
-    }else {
+    } else {
       if (valid) {
         valid = false
 
@@ -90,4 +90,4 @@ async function finishAddTableOfContentsField (peertubeHelpers) {
   await update()
 }
 
-export { register}
+export { register }
