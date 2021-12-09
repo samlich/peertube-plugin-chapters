@@ -9,7 +9,8 @@ async function register ({ registerVideoField, peertubeHelpers }) {
       'You can use a Markdown format, e.g. "20. [Tim the Enchanter](#1h3m44.7s)", or a simple text format such as "1:03:44 Tim the Enchanter".<br/><br/>' +
       'A chapter that doesn\'t provide unique information and may want to be skipped can be marked with a special category including "Sponsor", "Self-promotion", "Interaction reminder", "Intro", "Intermission", "Outro", "Credits", or "Non-music". These tags are recognized when they are placed in parenthesis at the start of a title, e.g. "13. [(Sponsor) About Bob\'s Beans](#1m3s)".<br/><br/>' +
       'In the simple text case, separators will be removed, such as "1:03:44 - Tim the Enchanter" being equivalent to the above. The Markdown format allows specifying subchapters with a four space indent, the simple text format recognizes indents before the timestamp.<br/><br/>' +
-      'Timestamps can be colon-separated, e.g. 0:00.00, where the smallest unit is a second, or unit-separated such as 0h0m0.0s.'
+        'Timestamps can be colon-separated, e.g. 0:00.00, where the smallest unit is a second, or unit-separated such as 0h0m0.0s.<br/><br/>' +
+        'Thumbnails can be specified in the markdown format by writing the timestamp like "?thumbnail=1m5s+3#1m3s".'
     ),
     type: 'input-textarea',
     default: ''
