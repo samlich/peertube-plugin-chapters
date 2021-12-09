@@ -1,7 +1,7 @@
 const common = require('./client/common.js')
 const { tableOfContentsField, parseTableOfContents, toWebVtt } = common
 
-async function register ({ registerHook, registerSetting, settingsManager, storageManager, videoCategoryManager, videoLicenceManager, videoLanguageManager, getRouter }) {
+async function register ({ peertubeHelpers, registerHook, registerSetting, settingsManager, storageManager, videoCategoryManager, videoLicenceManager, videoLanguageManager, getRouter }) {
   registerHook({
     target: 'action:api.video.updated',
     handler: ({ video, body }) => {
@@ -53,14 +53,54 @@ async function register ({ registerHook, registerSetting, settingsManager, stora
 
   const router = getRouter()
   router.get('/videos/*', async (req, res) => {
-    const videoId = req.path.slice(req.path.lastIndexOf('/') + 1)
-    const webVtt = await storageManager.getData(tableOfContentsField + '_vtt' + '_v-' + videoId)
+    const file = req.path.slice(req.path.lastIndexOf('/') + 1)
+    const extensionIndex = file.indexOf('.')
+    var extension = 'vtt'
+    var videoIdOrUUID = file
+    if (extensionIndex !== -1) {
+      videoIdOrUUID = file.slice(0, extensionIndex)
+      extension = file.slice(extensionIndex + 1)
+    }
+    var videoId = videoIdOrUUID
+    // the short UUIDs appear to be 22, so use 20 to be safe
+    if (videoIdOrUUID.length >= 20) {
+      try {
+        const video = await peertubeHelpers.videos.loadByIdOrUUID(videoIdOrUUID)
+        if (video == null) {
+          res.status(404).send('404 Not Found')
+          return
+        }
+        videoId = video.id
+      } catch (e) {
+        console.error('chapters: /videos/: Failed to video loadByIdOrUUID: ' + e)
+        res.status(500).send('500 Internal Server Error')
+        return
+      }
+    }
 
-    if (webVtt == null) {
-      res.status(404).send('404 Not Found')
-    } else {
-      res.append('content-type', 'text/vtt')
-      res.send(webVtt)
+    switch (extension) {
+      case 'vtt':
+        var webVtt = await storageManager.getData(tableOfContentsField + '_vtt' + '_v-' + videoId)
+
+        if (webVtt == null) {
+          res.status(404).send('404 Not Found')
+        } else {
+          res.append('content-type', 'text/vtt')
+          res.send(webVtt)
+        }
+        break
+      case 'json':
+        var json = await storageManager.getData(tableOfContentsField + '_parsed' + '_v-' + videoId)
+
+        if (json == null) {
+          res.status(404).send('404 Not Found')
+        } else {
+          res.append('content-type', 'application/json')
+          res.send(json)
+        }
+        break
+      default:
+        res.status(404).send('404 Not Found')
     }
   })
 }

@@ -1,4 +1,4 @@
-import { version, tableOfContentsField } from './common.js'
+import { tableOfContentsField } from './common.js'
 
 function register ({ registerHook, peertubeHelpers }) {
   registerHook({
@@ -13,11 +13,11 @@ function register ({ registerHook, peertubeHelpers }) {
     target: 'action:embed.player.loaded',
     handler: ({ player, video, videojs }) => {
       // `peertubeHelpers` is not available for embed, make best attemp at getting base route
-      // var baseRoute = video.originInstanceUrl + '/plugins/chapters/' + version + '/router'
+      // var baseRoute = video.originInstanceUrl + '/plugins/chapters/router'
       var baseRoute = video.channel.url
       baseRoute = baseRoute.slice(0, baseRoute.lastIndexOf('/'))
       baseRoute = baseRoute.slice(0, baseRoute.lastIndexOf('/'))
-      baseRoute += '/plugins/chapters/' + version + '/router'
+      baseRoute += '/plugins/chapters/router'
       setup(player, video, videojs, baseRoute)
     }
   })
@@ -29,7 +29,7 @@ function register ({ registerHook, peertubeHelpers }) {
     }
     // const tocText = video.pluginData[tableOfContentsField]
 
-    const vttUrl = baseRoute + '/videos/' + video.id
+    const vttUrl = baseRoute + '/videos/' + video.id + '.vtt'
     var track = player.addRemoteTextTrack({
       kind: 'chapters',
       src: vttUrl,
