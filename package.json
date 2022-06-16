@@ -25,6 +25,9 @@
       ]
     }
   ],
+  "css": [
+    "assets/style.css"
+  ],
   "dependencies": {
     "marked": "^2.1"
   },
@@ -47,6 +50,5 @@
   "translations": {
     "de-DE": "./languages/de.json"
   },
-  "css": [],
   "staticDirs": {}
 }

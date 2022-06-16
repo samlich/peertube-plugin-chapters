@@ -54,10 +54,8 @@ function register ({ registerHook, peertubeHelpers }) {
           var menu = chaptersButton.el().getElementsByClassName('vjs-menu-content')
           if (menu != null && menu.length > 0) {
             menu = menu[0]
-            // Some part of the theme sets
-            // .video-js.vjs-peertube-skin .vjs-control-bar .vjs-menu-button-popup .vjs-menu .vjs-menu-content
-            // to have width: 50px
-            menu.style.width = 'auto'
+            // used by `assets/style.css`
+            menu.id = 'peertube-plugin-chapters-menu'
           }
         }
       } else {
