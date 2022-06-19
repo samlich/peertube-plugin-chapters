@@ -33,8 +33,10 @@ function register ({ registerHook, peertubeHelpers }) {
     var track = player.addRemoteTextTrack({
       kind: 'chapters',
       src: vttUrl,
-      manualCleanup: true
-    })
+      manualCleanup: false
+    },
+    // `manualCleanup`, also provided in previous arg, when true, `TextTrack` will be removed on source change
+    false)
     // no `onload` event it seems
     function waitTrackReady () {
       if (track.readyState === 0 || track.readyState === 1) {
