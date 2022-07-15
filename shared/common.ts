@@ -1,33 +1,44 @@
-// import marked from 'marked' - doesn't work in main.js
-const marked = require('marked')
+import type { RegisterClientHelpers } from '@peertube/peertube-types/client'
+import { marked } from 'marked'
 
-const tableOfContentsField = 'table-of-contents'
+export const tableOfContentsField = 'table-of-contents'
 
-/*
-{
-  chapters: [
-    // chapter
-    {
-      start: float,
-      end: float,
-      name: String,
-      tags: {
-        sponsor: bool,
-        selfPromotion: bool,
-        interactionReminder: bool,
-        intro: bool,
-        intermission: bool,
-        outro: bool,
-        credits: bool,
-        nonMusic: bool,
-      },
-    }
-  ],
+export type Chapters = {
+  chapters: Chapter[],
+  description: string | null,
+  end: null,
+}
+type Chapter = {
+  start: number,
+  end?: number,
+  name: string,
+  tags: {
+    sponsor?: boolean,
+    selfPromotion?: boolean,
+    interactionReminder?: boolean,
+    intro?: boolean,
+    intermission?: boolean,
+    outro?: boolean,
+    credits?: boolean,
+    nonMusic?: boolean,
+  }
 }
 
-*/
-function parseTableOfContents (unparsed) {
-  var ret = {
+export type ChaptersError = {
+  error: ChaptersErrorInner,
+}
+type ChaptersErrorInner = {
+  kind: string,
+  errorString?: string,
+  item?: string,
+  lineText?: string,
+  timestampError?: TimestampErrorInner,
+  timestampValid?: string,
+  timestamp?: string,
+}
+
+export function parseTableOfContents (unparsed: string): Chapters | ChaptersError {
+  var ret: Chapters = {
     chapters: [],
     description: null,
     end: null
@@ -45,30 +56,28 @@ function parseTableOfContents (unparsed) {
       if (item.type !== 'list_item') {
         return { error: { kind: 'non_list_item', item: item.text } }
       }
-      if (item.tokens.length > 0 &&
+      if (0 < item.tokens.length &&
         item.tokens[0].type === 'text' &&
-        item.tokens[0].tokens.length > 0 &&
-        item.tokens[0].tokens[0].type === 'link') {
-        var link = item.tokens[0].tokens[0]
+        ((item.tokens[0] as marked.Tokens.Text).tokens ?? []).length > 0 &&
+        (item.tokens[0] as marked.Tokens.Text).tokens![0].type === 'link') {
+        var link = (item.tokens[0] as marked.Tokens.Text).tokens![0] as marked.Tokens.Link
         if (!link.href.startsWith('#')) {
           return { error: { kind: 'timestamp_not_fragment' } }
         } else {
           const timestampText = link.href.slice(1) // == #1m1s
           var timestamp = parseTimestamp(timestampText)
-          if (timestamp.error != null) {
+          if (timestamp.hasOwnProperty('error')) {
+            timestamp = timestamp as TimestampError
             return { error: { kind: 'bad_timestamp', item: item.tokens[0].text, timestampError: timestamp.error } }
           }
+          timestamp = timestamp as TimestampParsed
           if (timestamp.length !== timestampText.trim().length) {
             return { error: { kind: 'bad_timestamp_partial', item: item.tokens[0].text, timestampValid: timestampText.slice(0, timestamp.length), timestamp: timestampText } }
           }
           var chapterText = link.text
           // var chapter_markdown = link.tokens
 
-          const result = pushChapter(ret, chapterText, timestamp)
-          if (result !== true) {
-            // never happens at the moment, so no handling for translation
-            return { error: { kind: 'push_chapter', errorString: result } }
-          }
+          pushChapter(ret, chapterText, timestamp)
         }
       } else {
         return { error: { kind: 'non_link', item: item.text } }
@@ -81,10 +90,12 @@ function parseTableOfContents (unparsed) {
       if (line.trim().length === 0) {
         continue
       }
-      const timestamp = parseTimestamp(line)
-      if (timestamp.error != null) {
+      var timestamp = parseTimestamp(line)
+      if (timestamp.hasOwnProperty('error')) {
+        timestamp = timestamp as TimestampError
         return { error: { kind: 'bad_timestamp_starting_line', lineText: line, timestampError: timestamp.error } }
       }
+      timestamp = timestamp as TimestampParsed
       var text = line.slice(timestamp.length).trim()
       var limit = 0
       while (limit < 10000) {
@@ -93,15 +104,11 @@ function parseTableOfContents (unparsed) {
           text = text.slice(1).trim()
         }
       }
-      const result = pushChapter(ret, text, timestamp)
-      if (result !== true) {
-        // never happens at the moment, so no handling for translation
-        return { error: { kind: 'push_chapter', errorString: result } }
-      }
+      pushChapter(ret, text, timestamp)
     }
   }
 
-  ret.chapters.sort(function (a, b) { return a.start - b.start })
+  ret.chapters.sort(function (a: Chapter, b: Chapter): number { return a.start - b.start })
   for (var i = 0; i < ret.chapters.length; i++) {
     var chapter = ret.chapters[i]
     if (chapter.end == null) {
@@ -118,7 +125,7 @@ function parseTableOfContents (unparsed) {
   return ret
 }
 
-async function fillParseTableOfContentsErrorString (peertubeHelpers, error) {
+export async function fillParseTableOfContentsErrorString (peertubeHelpers: RegisterClientHelpers, error: ChaptersErrorInner) {
   try {
     switch (error.kind) {
       case 'non_list_item':
@@ -128,21 +135,21 @@ async function fillParseTableOfContentsErrorString (peertubeHelpers, error) {
         error.errorString = await peertubeHelpers.translate('Timestamp does not start with "#"')
         break
       case 'bad_timestamp':
-        await fillParseTimestampErrorString(peertubeHelpers, error.timestampError)
-        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + '" ' + error.item + '": ' + error.timestampError.errorString
+        await fillParseTimestampErrorString(peertubeHelpers, error.timestampError!)
+        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + '" ' + error.item + '": ' + error.timestampError!.errorString
         break
       case 'bad_timestamp_partial':
         error.errorString = await peertubeHelpers.translate('Failed to parse timestamp for') + ' "' + error.item + '"' + await peertubeHelpers.translate(', only ') + '"' + error.timestampValid + '"' + await peertubeHelpers.translate(' of ') + '"' + error.timestamp + '"' + await peertubeHelpers.translate(' is valid.')
         break
       case 'bad_timestamp_starting_line':
-        await fillParseTimestampErrorString(peertubeHelpers, error.timestampError)
-        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp at start of') + ' "' + error.lineText + '": ' + error.timestampError.errorString
+        await fillParseTimestampErrorString(peertubeHelpers, error.timestampError!)
+        error.errorString = await peertubeHelpers.translate('Failed to parse timestamp at start of') + ' "' + error.lineText + '": ' + error.timestampError!.errorString
         break
       case 'non_link':
         error.errorString = await peertubeHelpers.translate('Encountered non-link item') + ', "' + error.item + '"'
         break
       default:
-        if (error.errorString === null) {
+        if (error.errorString === null || error.errorString === undefined) {
           error.errorString = await peertubeHelpers.translate('Unknown error.')
         }
         break
@@ -156,7 +163,7 @@ async function fillParseTableOfContentsErrorString (peertubeHelpers, error) {
   }
 }
 
-async function fillParseTimestampErrorString (peertubeHelpers, error) {
+async function fillParseTimestampErrorString (peertubeHelpers: RegisterClientHelpers, error: TimestampErrorInner) {
   try {
     switch (error.kind) {
       case 'frame_number_and_fractional_seconds':
@@ -180,15 +187,15 @@ async function fillParseTimestampErrorString (peertubeHelpers, error) {
   }
 }
 
-function toWebVtt (obj, json) {
-  function webVttTimestamp (instant) {
+export function toWebVtt (obj: Chapters, json: boolean = false) {
+  function webVttTimestamp (instant: number): string {
     var second = instant % 60
     const minute = Math.round((instant - second) / 60 % 60)
     const hour = Math.round((instant - 60 * minute - second) / 3600)
 
     // `toFixed` rounds the binary representation, e.g. 0.5595 rounds to 0.559
     // https://stackoverflow.com/questions/661562/how-to-format-a-float-in-javascript
-    function toFixed2 (value, precision) {
+    function toFixed2 (value: number, precision: number): string {
       var power = Math.pow(10, precision || 0)
       // use regular `toFixed` to always have 3 decimals including trailing zeroes
       return (Math.round(value * power) / power).toFixed(precision)
@@ -235,11 +242,11 @@ function toWebVtt (obj, json) {
   return ret
 }
 
-function pushChapter (obj, text, start) {
-  var tag = text.match(/\((.+)\)/)
-  var tags = {}
-  if (tag) {
-    tag = tag[1].toLowerCase()
+function pushChapter (obj: Chapters, text: string, start: TimestampParsed) {
+  var tagMatch = text.match(/\((.+)\)/)
+  var tags: Record<string, boolean> = {}
+  if (tagMatch) {
+    var tag = tagMatch[1].toLowerCase()
     if (tag === 'sponsor') {
       tags.sponsor = true
     } else if (tag === 'self-promotion' || tag === 'self promotion') {
@@ -264,10 +271,23 @@ function pushChapter (obj, text, start) {
     name: text,
     tags: tags
   })
-  return true
 }
 
-function parseTimestamp (unparsed) {
+type TimestampParsed = {
+  instant: number,
+  frame: number,
+  length: number,
+}
+
+type TimestampError = {
+  error: TimestampErrorInner,
+  }
+type TimestampErrorInner = {
+  kind: string,
+  errorString?: string,
+}
+
+function parseTimestamp (unparsed: string): TimestampParsed | TimestampError {
   const unit = unparsed.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+(?:\.\d+)?)s)?(?:\+(\d+))?/)
   const sexagesimal = unparsed.match(/^(?:(\d+):)?(\d{1,2}):(\d\d(?:\.\d+)?)(?:\+(\d+))?/)
 
@@ -299,10 +319,10 @@ function parseTimestamp (unparsed) {
   if (unit && unit[0].length !== 0) {
     var s = 0
     if (unit[1]) {
-      s += 3600 * unit[1]
+      s += 3600 * parseInt(unit[1])
     }
     if (unit[2]) {
-      s += 60 * unit[2]
+      s += 60 * parseInt(unit[2])
     }
     var secondsSpecified = 0
     if (unit[3]) {
@@ -326,11 +346,4 @@ function parseTimestamp (unparsed) {
   }
 
   return { error: { kind: 'unknown_format' } }
-}
-
-module.exports = {
-  tableOfContentsField,
-  parseTableOfContents,
-  fillParseTableOfContentsErrorString,
-  toWebVtt
 }

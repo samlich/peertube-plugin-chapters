@@ -1,10 +1,10 @@
-const common = require('./client/common.js')
-const { tableOfContentsField, parseTableOfContents, toWebVtt } = common
+import type { RegisterServerOptions, MVideoFullLight, VideoDetails } from '@peertube/peertube-types'
+import { tableOfContentsField, parseTableOfContents, toWebVtt, Chapters } from '../shared/common'
 
-async function register ({ peertubeHelpers, registerHook, registerSetting, settingsManager, storageManager, videoCategoryManager, videoLicenceManager, videoLanguageManager, getRouter }) {
+export async function register ({ peertubeHelpers, registerHook, storageManager, getRouter }: RegisterServerOptions) {
   registerHook({
     target: 'action:api.video.updated',
-    handler: ({ video, body }) => {
+    handler: ({ video, body }: { video: MVideoFullLight, body: any }) => {
       if (!body.pluginData) {
         return
       }
@@ -19,8 +19,9 @@ async function register ({ peertubeHelpers, registerHook, registerSetting, setti
       }
       storageManager.storeData(tableOfContentsField + '_v-' + video.id, tocText)
 
-      const parsed = parseTableOfContents(tocText)
-      if (parsed.errorString == null) {
+      var parsed = parseTableOfContents(tocText)
+      if (!parsed.hasOwnProperty('error')) {
+        parsed = parsed as Chapters
         storageManager.storeData(tableOfContentsField + '_parsed' + '_v-' + video.id, parsed)
         if (parsed.chapters.length === 0) {
           storageManager.storeData(tableOfContentsField + '_vtt' + '_v-' + video.id, null)
@@ -37,7 +38,7 @@ async function register ({ peertubeHelpers, registerHook, registerSetting, setti
 
   registerHook({
     target: 'filter:api.video.get.result',
-    handler: async (video) => {
+    handler: async (video: VideoDetails) => {
       if (!video) {
         return video
       }
@@ -105,10 +106,5 @@ async function register ({ peertubeHelpers, registerHook, registerSetting, setti
   })
 }
 
-async function unregister () {
-}
-
-module.exports = {
-  register,
-  unregister
+export async function unregister () {
 }
