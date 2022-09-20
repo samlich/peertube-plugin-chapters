@@ -8,20 +8,32 @@ export type Chapters = {
   description: string | null,
   end: null,
 }
-type Chapter = {
+export type Chapter = {
   start: number,
   end?: number,
   name: string,
-  tags: {
-    sponsor?: boolean,
-    selfPromotion?: boolean,
-    interactionReminder?: boolean,
-    intro?: boolean,
-    intermission?: boolean,
-    outro?: boolean,
-    credits?: boolean,
-    nonMusic?: boolean,
-  }
+  tag: Tag,
+  tags?: TagsDeprecated,
+}
+export type Tag = null |
+ 'sponsor' |
+ 'self_promotion' |
+ 'interaction_reminder' |
+ 'intro' |
+ 'intermission' |
+ 'outro' |
+ 'credits' |
+ 'non_music'
+
+type TagsDeprecated = {
+  sponsor?: boolean,
+  selfPromotion?: boolean,
+  interactionReminder?: boolean,
+  intro?: boolean,
+  intermission?: boolean,
+  outro?: boolean,
+  credits?: boolean,
+  nonMusic?: boolean,
 }
 
 export type ChaptersError = {
@@ -187,7 +199,7 @@ async function fillParseTimestampErrorString (peertubeHelpers: RegisterClientHel
   }
 }
 
-export function toWebVtt (obj: Chapters, json: boolean = false) {
+export function toWebVtt (obj: Chapters, json: boolean = false): string {
   function webVttTimestamp (instant: number): string {
     var second = instant % 60
     const minute = Math.round((instant - second) / 60 % 60)
@@ -244,32 +256,32 @@ export function toWebVtt (obj: Chapters, json: boolean = false) {
 
 function pushChapter (obj: Chapters, text: string, start: TimestampParsed) {
   var tagMatch = text.match(/\((.+)\)/)
-  var tags: Record<string, boolean> = {}
+  var tag: Tag = null
   if (tagMatch) {
-    var tag = tagMatch[1].toLowerCase()
-    if (tag === 'sponsor') {
-      tags.sponsor = true
-    } else if (tag === 'self-promotion' || tag === 'self promotion') {
-      tags.selfPromotion = true
-    } else if (tag === 'interaction reminder') {
-      tags.interactionReminder = true
-    } else if (tag === 'intro' || tag === 'introduction') {
-      tags.intro = true
-    } else if (tag === 'intermission') {
-      tags.intermission = true
-    } else if (tag === 'outro') {
-      tags.outro = true
-    } else if (tag === 'credits') {
-      tags.credits = true
-    } else if (tag === 'non-music' || tag === 'non music' || tag === 'nonmusic') {
-      tags.nonMusic = true
+    var tagText = tagMatch[1].toLowerCase()
+    if (tagText === 'sponsor') {
+      tag = 'sponsor'
+    } else if (tagText === 'self-promotion' || tagText === 'self promotion') {
+      tag = 'self_promotion'
+    } else if (tagText === 'interaction reminder') {
+      tag = 'interaction_reminder'
+    } else if (tagText === 'intro' || tagText === 'introduction') {
+      tag = 'intro'
+    } else if (tagText === 'intermission') {
+      tag = 'intermission'
+    } else if (tagText === 'outro') {
+      tag = 'outro'
+    } else if (tagText === 'credits') {
+      tag = 'credits'
+    } else if (tagText === 'non-music' || tagText === 'non music' || tagText === 'nonmusic') {
+      tag = 'non_music'
     }
   }
 
   obj.chapters.push({
     start: start.instant + start.frame / 30,
     name: text,
-    tags: tags
+    tag
   })
 }
 
@@ -346,4 +358,85 @@ function parseTimestamp (unparsed: string): TimestampParsed | TimestampError {
   }
 
   return { error: { kind: 'unknown_format' } }
+}
+
+// convert deprecated `tags` field to replacement `tag` field
+export function migrateTags(x: object): [Chapters | null, boolean] {
+  var y = x as any
+  var modified = false
+  
+  var description = null
+  if (x.hasOwnProperty('description')) {
+    description = y.description
+  }
+  
+  var chapters: Chapter[] = []
+  if (!x.hasOwnProperty('chapters')) {
+    return [null, false]
+  } else {
+    for (var i = 0; i < y.chapters.length; i++) {
+      var start = y.chapters[i].start
+      var end = y.chapters[i].end
+      var name = y.chapters[i].name
+      var tag: Tag
+      if (y.chapters[i].hasOwnProperty('tag')) {
+        tag = y.chapters[i].tag
+      } else if (y.chapters[i].hasOwnProperty('tags')) {
+        modified = true
+        var tags = y.chapters[i].tags
+        if (tags.sponsor) {
+          tag = 'sponsor'
+        } else if (tags.selfPromotion) {
+          tag = 'self_promotion'
+        } else if (tags.interactionReminder) {
+          tag = 'interaction_reminder'
+        } else if (tags.intro) {
+          tag = 'intro'
+        } else if (tags.intermission) {
+          tag = 'intermission'
+        } else if (tags.outro) {
+          tag = 'outro'
+        } else if (tags.credits) {
+          tag = 'credits'
+        } else if (tags.nonMusic) {
+          tag = 'non_music'
+        } else {
+          tag = null
+        }
+      } else {
+        tag = null
+      }
+      
+      chapters.push({ start, end, name, tag })
+    }
+  }
+  
+  const obj = { chapters, description, end: null }
+  return [obj, modified]
+}
+
+// fill deprecated `tags` field from replacement `tag` field
+export function tagsCompatibility(x: Chapters) {
+  for (var i = 0; i < x.chapters.length; i++) {
+    var tag = x.chapters[i].tag
+    var tags: TagsDeprecated = {}
+    if (tag == 'sponsor') {
+      tags.sponsor = true
+    }else if (tag == 'self_promotion') {
+      tags.selfPromotion = true
+    }else if (tag == 'interaction_reminder') {
+      tags.interactionReminder = true
+    }else if (tag == 'intro') {
+      tags.intro = true
+    }else if (tag == 'intermission') {
+      tags.intermission = true
+    }else if (tag == 'outro') {
+      tags.outro = true
+    }else if (tag == 'credits') {
+      tags.credits = true
+    }else if (tag == 'non_music') {
+      tags.nonMusic = true
+    }
+    x.chapters[i].tags = tags
+  }
 }

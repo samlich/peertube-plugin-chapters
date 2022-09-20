@@ -26,28 +26,35 @@ The resulting WebVTT data can be previewed by hovering over the input box until 
 
 Tags can be added to chapters by prefixing them in parenthesis. The supported tags are similar to SponsorBlock and include "Sponsor", "Self-promotion", "Interaction reminder" (like, comment, subscribe), "Intro", "Intermission", "Outro", "Credits", or "Non-music" (segment of music). These tags are added to chapter data available to other plugins.
 
-Chapters can be accessed by other plugins using the text track added to the video (`player.remoteTextTracks()`), and through `video.pluginData['table-of-contents_parsed']`. It contains an object of the form:
+Chapters can be accessed by other plugins using the text track added to the video (`player.remoteTextTracks()`), and through `video.pluginData['table-of-contents_parsed']`.
+They can be accessed externally (or internally) at `/plugins/chapters/router/videos/<uuid>.json`, or `<uuid>.vtt` for a WebVTT.
+For example:
 
-    {
-      chapters: [
-        // chapter
-        {
-          start: float,
-          end: float,
-          name: String,
-          tags: {
-            sponsor: bool,
-            selfPromotion: bool,
-            interactionReminder: bool,
-            intro: bool,
-            intermission: bool,
-            outro: bool,
-            credits: bool,
-            nonMusic: bool,
-          },
-        }
-      ],
+- [https://peertube-demo.samli.ch/plugins/chapters/router/videos/2Sf37VnzwF9biJ9LTTmQbx.json](https://peertube-demo.samli.ch/plugins/chapters/router/videos/2Sf37VnzwF9biJ9LTTmQbx.json)
+- [https://peertube-demo.samli.ch/plugins/chapters/router/videos/2Sf37VnzwF9biJ9LTTmQbx.vtt](https://peertube-demo.samli.ch/plugins/chapters/router/videos/2Sf37VnzwF9biJ9LTTmQbx.vtt)
+
+The JavaScript and JSON objects are of the form:
+
+    export type Chapters = {
+      chapters: Chapter[],
+      description: string | null,
+      end: null,
     }
+    export type Chapter = {
+      start: number,
+      end?: number,
+      name: string,
+      tag: Tag,
+    }
+    export type Tag = null |
+     'sponsor' |
+     'self_promotion' |
+     'interaction_reminder' |
+     'intro' |
+     'intermission' |
+     'outro' |
+     'credits' |
+     'non_music'
 
 ## Contributing
 
