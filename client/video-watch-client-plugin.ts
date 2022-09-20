@@ -5,7 +5,7 @@ import type videojs from 'video.js'
 
 type videojsPackage = typeof videojs
 
-export function register ({ registerHook, peertubeHelpers }: RegisterClientOptions) {
+export function register ({ registerHook, peertubeHelpers }: RegisterClientOptions): void {
   registerHook({
     target: 'action:video-watch.player.loaded',
     handler: ({ player, video, videojs }: { player: videojs.Player, video: VideoDetails, videojs: videojsPackage }) => {
@@ -19,7 +19,7 @@ export function register ({ registerHook, peertubeHelpers }: RegisterClientOptio
     handler: ({ player, video, videojs }: { player: videojs.Player, video: VideoDetails, videojs: videojsPackage }) => {
       // `peertubeHelpers` is not available for embed, make best attemp at getting base route
       // var baseRoute = video.originInstanceUrl + '/plugins/chapters/router'
-      var baseRoute = video.channel.url
+      let baseRoute = video.channel.url
       baseRoute = baseRoute.slice(0, baseRoute.lastIndexOf('/'))
       baseRoute = baseRoute.slice(0, baseRoute.lastIndexOf('/'))
       baseRoute += '/plugins/chapters/router'
@@ -27,40 +27,43 @@ export function register ({ registerHook, peertubeHelpers }: RegisterClientOptio
     }
   })
 
-  function setup (player: videojs.Player, video: VideoDetails, videojs: videojsPackage, baseRoute: string) {
-    if (!video.pluginData || !video.pluginData[tableOfContentsField]) {
+  function setup (player: videojs.Player, video: VideoDetails, videojs: videojsPackage, baseRoute: string): void {
+    if (video.pluginData == null || video.pluginData[tableOfContentsField] == null) {
       console.log('chapters: No table of contents provided for this video')
       return
     }
     // const tocText = video.pluginData[tableOfContentsField]
 
-    var chaptersButton = player.controlBar.getChild('ChaptersButton')
+    let chaptersButton = player.controlBar.getChild('ChaptersButton')
     if (chaptersButton == null) {
       // must be added before text track is loaded
       chaptersButton = player.controlBar.addChild('ChaptersButton', {})
       // re-order chapters button; it is placed at the end by default
-      const nextEl = player.controlBar.getChild('VolumeControl') || player.controlBar.getChild('P2PInfoButton')
+      let nextEl = player.controlBar.getChild('VolumeControl')
+      if (nextEl == null) {
+        nextEl = player.controlBar.getChild('P2PInfoButton')
+      }
       if (nextEl != null) {
         player.controlBar.el().insertBefore(chaptersButton.el(), nextEl.el())
       }
-      var menus = chaptersButton.el().getElementsByClassName('vjs-menu-content')
+      const menus = chaptersButton.el().getElementsByClassName('vjs-menu-content')
       if (menus != null && menus.length > 0) {
-        var menu = menus[0]
+        const menu = menus[0]
         // used by `assets/style.css`
         menu.id = 'peertube-plugin-chapters-menu'
       }
     }
 
-    const vttUrl = baseRoute + '/videos/' + video.id + '.vtt'
-    var track = player.addRemoteTextTrack({
+    const vttUrl = baseRoute + '/videos/' + video.id.toString() + '.vtt'
+    const track = player.addRemoteTextTrack({
       kind: 'chapters',
-      src: vttUrl,
+      src: vttUrl
     },
     // `manualCleanup`, when true, `TextTrack` will be removed on source change
     false)
 
     // no `onload` event it seems
-    function waitTrackReady () {
+    function waitTrackReady (): void {
       if (track.readyState === 0 || track.readyState === 1) {
         // not ready
         window.setTimeout(waitTrackReady, 50)
@@ -70,16 +73,16 @@ export function register ({ registerHook, peertubeHelpers }: RegisterClientOptio
         console.log('chapters: loaded successfully')
         if (chaptersButton == null) {
           console.error('chapters: no chapters button')
-          } else {
-          var menus = chaptersButton.el().getElementsByClassName('vjs-menu-content')
+        } else {
+          const menus = chaptersButton.el().getElementsByClassName('vjs-menu-content')
           if (menus != null && menus.length > 0) {
-            var menu = menus[0]
+            const menu = menus[0]
             // used by `assets/style.css`
             menu.id = 'peertube-plugin-chapters-menu'
           }
-          }
+        }
       } else {
-        console.log('chapters: Unexpected HTMLTrackElement readyState of ' + track.readyState + ' while loading video text track from "' + vttUrl + '"')
+        console.log('chapters: Unexpected HTMLTrackElement readyState of ' + track.readyState.toString() + ' while loading video text track from "' + vttUrl + '"')
       }
     }
     window.setTimeout(waitTrackReady, 50)

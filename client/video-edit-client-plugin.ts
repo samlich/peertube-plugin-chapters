@@ -1,10 +1,10 @@
 import type { RegisterClientFormFieldOptions } from '@peertube/peertube-types'
 import type { RegisterClientHelpers, RegisterClientOptions } from '@peertube/peertube-types/client'
-import { tableOfContentsField, parseTableOfContents, fillParseTableOfContentsErrorString, toWebVtt, Chapters, ChaptersError } from 'shared/common'
+import { tableOfContentsField, parseTableOfContents, fillParseTableOfContentsErrorString, toWebVtt, Chapters, ChaptersError, hasOwn } from 'shared/common'
 
-const types: ('upload' | 'import-url' | 'import-torrent' | 'update' | 'go-live')[] = ['upload', 'import-url', 'import-torrent', 'update']
+const types: Array<'upload' | 'import-url' | 'import-torrent' | 'update' | 'go-live'> = ['upload', 'import-url', 'import-torrent', 'update']
 
-export async function register ({ registerVideoField, peertubeHelpers }: RegisterClientOptions) {
+export async function register ({ registerVideoField, peertubeHelpers }: RegisterClientOptions): Promise<void> {
   // Add table of contents option
   const commonOptions: RegisterClientFormFieldOptions = {
     name: tableOfContentsField,
@@ -23,32 +23,38 @@ export async function register ({ registerVideoField, peertubeHelpers }: Registe
     const videoFormOptions = { type }
     registerVideoField(commonOptions, videoFormOptions)
   }
-  await finishAddTableOfContentsField(peertubeHelpers)
+  setTimeout(() => {
+    finishAddTableOfContentsField(peertubeHelpers).catch(err => console.error('chapter: ' + String(err)))
+  }, 50)
 }
 
-async function finishAddTableOfContentsField (peertubeHelpers: RegisterClientHelpers) {
-  var element = document.getElementById(tableOfContentsField) as HTMLTextAreaElement | null
-  // The element is not added until the user switches to the "Plugin settings" tab
-  if (element == null) {
-    setTimeout(() => {
-      finishAddTableOfContentsField(peertubeHelpers)
-    }, 3000)
-    return
+async function sleep (ms: number): Promise<void> {
+  await new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function finishAddTableOfContentsField (peertubeHelpers: RegisterClientHelpers): Promise<void> {
+  let element: HTMLTextAreaElement | null = null
+  while (element == null) {
+    element = document.getElementById(tableOfContentsField) as HTMLTextAreaElement | null
+    // The element is not added until the user switches to the "Plugin settings" tab
+    if (element == null) {
+      await sleep(3000)
+    }
   }
 
   // var previewEl = document.createElement('div')
   // previewEl.id = tableOfContentsField + '-preview'
   // element.parentNode.appendChild(previewEl)
 
-  var valid = true
+  let valid = true
 
-  async function update () {
+  async function update (): Promise<void> {
     if (element == null) {
       throw new Error('typescript unreachable')
     }
 
-    var parsed = parseTableOfContents(element.value)
-    if (!parsed.hasOwnProperty('error')) {
+    let parsed = parseTableOfContents(element.value)
+    if (!hasOwn(parsed, 'error')) {
       parsed = parsed as Chapters
       if (!valid) {
         valid = true
@@ -56,9 +62,12 @@ async function finishAddTableOfContentsField (peertubeHelpers: RegisterClientHel
         element.classList.remove('ng-invalid')
         element.classList.add('ng-valid')
 
-        var errorElRemove = document.getElementById(tableOfContentsField + '-error')
+        const errorElRemove = document.getElementById(tableOfContentsField + '-error')
         if (errorElRemove != null) {
-          errorElRemove.parentNode!.removeChild(errorElRemove)
+          if (errorElRemove.parentNode == null) {
+            throw new Error('errorEl is root')
+          }
+          errorElRemove.parentNode.removeChild(errorElRemove)
         }
       }
 
@@ -81,21 +90,27 @@ async function finishAddTableOfContentsField (peertubeHelpers: RegisterClientHel
       // previewEl.innerText = ''
       }
 
-      var errorEl = document.getElementById(tableOfContentsField + '-error')
+      let errorEl = document.getElementById(tableOfContentsField + '-error')
       if (errorEl == null) {
         errorEl = document.createElement('div')
         errorEl.id = tableOfContentsField + '-error'
         errorEl.classList.add('form-error')
-        element.parentNode!.appendChild(errorEl)
+        if (element.parentNode == null) {
+          throw new Error('unreachable element is root')
+        }
+        element.parentNode.appendChild(errorEl)
       }
 
       await fillParseTableOfContentsErrorString(peertubeHelpers, parsed.error)
-      errorEl.innerText = parsed.error.errorString!
+      if (parsed.error.errorString == null) {
+        throw new Error('parsed.error.errorString null')
+      }
+      errorEl.innerText = parsed.error.errorString
     }
   }
 
-  element.addEventListener('input', async () => {
-    await update()
+  element.addEventListener('input', () => {
+    update().catch(err => console.error('chapters: ' + String(err)))
   })
 
   await update()

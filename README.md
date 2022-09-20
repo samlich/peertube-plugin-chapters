@@ -58,4 +58,4 @@ The JavaScript and JSON objects are of the form:
 
 ## Contributing
 
-Code is run through `npx standard --fix`. Some of the changes it makes are wrong, but at least it's consistent.
+From the `client` directory run `npx ts-standard --fix`, likewise from the `server` directory. And then from either run `npx ts-standard ../shared/common.ts --fix`. Correct any issues it doesn't fix automatically.
