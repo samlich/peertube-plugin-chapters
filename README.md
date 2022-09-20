@@ -58,4 +58,4 @@ The JavaScript and JSON objects are of the form:
 
 ## Contributing
 
-From the `client` directory run `npx ts-standard --fix`, likewise from the `server` directory. And then from either run `npx ts-standard ../shared/common.ts --fix`. Correct any issues it doesn't fix automatically.
+From the `client` directory run `npx ts-standard --fix`, likewise from the `server` and `tests` directories. And then from either run `npx ts-standard ../shared/common.ts --fix`. Correct any issues it doesn't fix automatically. Run `yarn test`.

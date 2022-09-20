@@ -34,10 +34,13 @@
   },
   "devDependencies": {
     "@types/express": "^4.17",
+    "@types/jest": "^29.0",
     "@types/marked": "^4.0",
     "@peertube/peertube-types": "^4.2",
     "@types/video.js": "^7.3",
     "@purtuga/esm-webpack-plugin": "^1.0",
+    "jest": "^29.0",
+    "ts-jest": "^29.0",
     "webpack": "^4.0",
     "webpack-cli": "^4.0",
     "ts-standard": "^11.0",
@@ -57,7 +60,7 @@
     "build:webpack": "webpack --mode production",
     "build:server": "npx -p typescript tsc --build server/tsconfig.json",
     "build": "npm-run-all -s clean:light -p build:webpack build:server",
-    "test": "standard"
+    "test": "jest"
   },
   "translations": {
     "de-DE": "./languages/de.json"
