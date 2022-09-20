@@ -3,8 +3,8 @@
   "description": "PeerTube chapter plugin",
   "license": "(MIT OR Apache-2.0)",
   "version": "1.0.2",
-  "author": "Miles DeWitt",
-  "homepage": "https://milesdewitt.com/peertube-chapters",
+  "author": "samlich",
+  "homepage": "https://samli.ch/peertube-chapters",
   "repository": "https://github.com/samlich/peertube-plugin-chapters",
   "bugs": "https://github.com/samlich/peertube-plugin-chapters",
   "engine": {

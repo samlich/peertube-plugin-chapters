@@ -1,6 +1,6 @@
 # PeerTube Chapter Plugin
 
-![Chapters menu on a video](https://milesdewitt.com/peertube-chapters/chapters-menu.png)
+![Chapters menu on a video](https://samli.ch/peertube-chapters/chapters-menu.png)
 
 This plugin adds support for listing chapters when uploading a video. They will then be shown in the chapter menu button when users play a video, and will be available to other plugins. Chapters are specified under the "Plugin settings" tab when editing a video.
 
@@ -22,7 +22,7 @@ Where the timestamps can be of the form 1:02:30 or 1h02m30s.
 
 The resulting WebVTT data can be previewed by hovering over the input box until the mouseover text appears.
 
-![WebVTT preview when editing video](https://milesdewitt.com/peertube-chapters/video-edit-small.png)
+![WebVTT preview when editing video](https://samli.ch/peertube-chapters/video-edit-small.png)
 
 Tags can be added to chapters by prefixing them in parenthesis. The supported tags are similar to SponsorBlock and include "Sponsor", "Self-promotion", "Interaction reminder" (like, comment, subscribe), "Intro", "Intermission", "Outro", "Credits", or "Non-music" (segment of music). These tags are added to chapter data available to other plugins.
 
