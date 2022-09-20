@@ -34,6 +34,23 @@ export function register ({ registerHook, peertubeHelpers }: RegisterClientOptio
     }
     // const tocText = video.pluginData[tableOfContentsField]
 
+    var chaptersButton = player.controlBar.getChild('ChaptersButton')
+    if (chaptersButton == null) {
+      // must be added before text track is loaded
+      chaptersButton = player.controlBar.addChild('ChaptersButton', {})
+      // re-order chapters button; it is placed at the end by default
+      const nextEl = player.controlBar.getChild('VolumeControl') || player.controlBar.getChild('P2PInfoButton')
+      if (nextEl != null) {
+        player.controlBar.el().insertBefore(chaptersButton.el(), nextEl.el())
+      }
+      var menus = chaptersButton.el().getElementsByClassName('vjs-menu-content')
+      if (menus != null && menus.length > 0) {
+        var menu = menus[0]
+        // used by `assets/style.css`
+        menu.id = 'peertube-plugin-chapters-menu'
+      }
+    }
+
     const vttUrl = baseRoute + '/videos/' + video.id + '.vtt'
     var track = player.addRemoteTextTrack({
       kind: 'chapters',
@@ -41,6 +58,7 @@ export function register ({ registerHook, peertubeHelpers }: RegisterClientOptio
     },
     // `manualCleanup`, when true, `TextTrack` will be removed on source change
     false)
+
     // no `onload` event it seems
     function waitTrackReady () {
       if (track.readyState === 0 || track.readyState === 1) {
@@ -49,21 +67,17 @@ export function register ({ registerHook, peertubeHelpers }: RegisterClientOptio
       } else if (track.readyState === 3 || (track.track.cues ?? []).length === 0) {
         console.log('chapters: Failed to load video text track from "' + vttUrl + '"')
       } else if (track.readyState === 2) {
-        if (player.controlBar.getChild('ChaptersButton') == null) {
-          const ChaptersButton = videojs.getComponent('ChaptersButton')
-          const chaptersButton = new ChaptersButton(player)
-          player.controlBar.addChild(chaptersButton)
-          const nextEl = player.controlBar.getChild('VolumeControl') || player.controlBar.getChild('P2PInfoButton')
-          if (nextEl != null) {
-            player.controlBar.el().insertBefore(chaptersButton.el(), nextEl.el())
-          }
+        console.log('chapters: loaded successfully')
+        if (chaptersButton == null) {
+          console.error('chapters: no chapters button')
+          } else {
           var menus = chaptersButton.el().getElementsByClassName('vjs-menu-content')
           if (menus != null && menus.length > 0) {
             var menu = menus[0]
             // used by `assets/style.css`
             menu.id = 'peertube-plugin-chapters-menu'
           }
-        }
+          }
       } else {
         console.log('chapters: Unexpected HTMLTrackElement readyState of ' + track.readyState + ' while loading video text track from "' + vttUrl + '"')
       }
