@@ -23,6 +23,15 @@ const config = clientFiles.map(f => ({
       {
         test: /\.ts$/,
         use: 'ts-loader'
+      },
+      {
+        test: /\.m?js$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
+        }
       }
     ]
   },
