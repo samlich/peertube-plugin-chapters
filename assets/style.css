@@ -1,4 +1,4 @@
 /* Override `.vjs-menu li { text-transform: lowercase; }`, from video-js.css */
 #peertube-plugin-chapters-menu li {
-		text-transform: none;
+	text-transform: none;
 }
