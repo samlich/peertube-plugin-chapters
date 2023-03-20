@@ -1,5 +1,7 @@
 # Chapters Plugin for PeerTube
 
+**This plugin will be obsoleted by the [PeerTube 2023 roadmap](https://github.com/Chocobozzz/PeerTube/issues/271#issuecomment-1451968990).**
+
 ![Chapters menu on a video](https://samli.ch/peertube-chapters/chapters-menu.png)
 
 [Here is a demo.](https://peertube-demo.samli.ch/w/2Sf37VnzwF9biJ9LTTmQbx)
