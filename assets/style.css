@@ -2,3 +2,15 @@
 #peertube-plugin-chapters-menu li {
 	text-transform: none;
 }
+
+#peertube-plugin-chapters-menu {
+	width: max-content;
+	max-width: 18em;
+	max-height: 20em;
+}
+
+#peertube-plugin-chapters-menu li:not(:first-child) {
+	padding-left: 1em;
+	padding-right: 1em;
+	text-align: left;
+}
