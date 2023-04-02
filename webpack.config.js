@@ -1,7 +1,5 @@
 const path = require('path')
 
-const EsmWebpackPlugin = require('@purtuga/esm-webpack-plugin')
-
 const clientFiles = [
   'video-edit-client-plugin',
   'video-watch-client-plugin'
@@ -11,13 +9,16 @@ const config = clientFiles.map(f => ({
   // mode: 'production',
   devtool: process.env.NODE_ENV === 'dev' ? 'eval-source-map' : false,
   entry: './client/' + f + '.ts',
+  experiments: {
+    outputModule: true
+  },
   output: {
     path: path.resolve(__dirname, './dist/client'),
     filename: './' + f + '.js',
-    library: 'script',
-    libraryTarget: 'var'
+    library: {
+      type: 'module',
+    }
   },
-  plugins: [new EsmWebpackPlugin()],
   module: {
     rules: [
       {
