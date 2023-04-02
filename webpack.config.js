@@ -16,7 +16,7 @@ const config = clientFiles.map(f => ({
     path: path.resolve(__dirname, './dist/client'),
     filename: './' + f + '.js',
     library: {
-      type: 'module',
+      type: 'module'
     }
   },
   module: {

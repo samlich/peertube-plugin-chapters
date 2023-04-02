@@ -1,7 +1,7 @@
 import type { RegisterClientHelpers } from '@peertube/peertube-types/client'
 import { marked } from 'marked'
 
-export const tableOfContentsField = 'table-of-contents'
+export const tableOfContentsField: string = 'table-of-contents'
 
 export interface Chapters {
   chapters: Chapter[]
@@ -361,7 +361,7 @@ function parseTimestamp (unparsed: string): TimestampParsed | TimestampError {
 
     return {
       instant: s,
-      frame: frame,
+      frame,
       length: sg[0].length
     }
   }
